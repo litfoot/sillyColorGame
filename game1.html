@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Color Match</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/game1.css">
+</head>
+
+<body>
+    <div class="top-bar">
+        <button class="back-button" onclick="window.location.href='index.html'">Back</button>
+        <h1>Color Match</h1>
+    </div>
+    <div class="color-box">
+        <div class="color-section">
+            <p>Target Color</p>
+            <div class="color-display" id="target-color"></div>
+        </div>
+        <div class="color-section">
+            <p>Your Guess</p>
+            <div class="color-display" id="guess-color"></div>
+            <div class="input-container">
+                <span class="hash-symbol">#</span>
+                <input type="text" id="color-input" placeholder="000000">
+            </div>
+            <button onclick="submitGuess()">Submit</button>
+        </div>
+    </div>
+    <div id="prev-guess">
+        <h2>Previous Guesses</h2>
+        <ul id="guess-list"></ul>
+    </div>
+    <script src="js/script.js"></script>
+    <script src="js/game1.js"></script>
+</body>
+
+</html>
