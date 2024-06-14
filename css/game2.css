@@ -1,0 +1,10 @@
+/* style.css */
+
+table {
+    border-collapse: collapse;
+}
+
+td {
+    width: 30px;
+    height: 30px;
+}
