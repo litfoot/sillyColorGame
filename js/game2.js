@@ -1,9 +1,32 @@
-function initializeGame() {
-    let difficulty = document.getElementById('difficulty').value;
-    let grid = initializeGrid(difficulty);
-    displayGrid(grid);
+// Function to convert hexadecimal color to RGB format
+function hexToRgb(hex) {
+    let r = parseInt(hex.slice(1, 3), 16);
+    let g = parseInt(hex.slice(3, 5), 16);
+    let b = parseInt(hex.slice(5, 7), 16);
+    return `rgb(${r}, ${g}, ${b})`;
 }
 
+function initializeGame() {
+    let difficulty = document.getElementById('difficulty').value;
+    let color1Input = document.getElementById('color1').value;
+    let color4Input = document.getElementById('color4').value;
+
+    // If the color picker's value is #000000, generate a random color instead
+    if (color1Input === '#000000') {
+        color1Input = generateColor();
+    } else {
+        color1Input = hexToRgb(color1Input);
+    }
+    if (color4Input === '#000000') {
+        color4Input = generateColor();
+    } else {
+        color4Input = hexToRgb(color4Input);
+    }
+
+    console.log(`color1Input: ${color1Input}, color4Input: ${color4Input}`);
+    let grid = initializeGrid(difficulty, color1Input, color4Input);
+    displayGrid(grid);
+}
 // Initialize the game when the page loads
 window.onload = initializeGame;
 
@@ -43,11 +66,13 @@ function interpolateColor(color1, color2, factor) {
 }
 
 // Function to initialize the game grid
-function initializeGrid(gridSize) {
-    let color1 = generateColor();
+function initializeGrid(gridSize, color1Input, color4Input) {
+    let color1 = color1Input;
+    // let color1 = color1Input || generateColor();
     let color2 = 'rgb(255, 255, 255)'; // White
     let color3 = 'rgb(0, 0, 0)'; // Black
-    let color4 = generateColor();
+    let color4 = color4Input;
+    // let color4 = color4Input || generateColor();
 
     let grid = [];
     for (let i = 0; i < gridSize; i++) {
@@ -136,6 +161,9 @@ function displayGrid(grid) {
             cell.style.backgroundColor = grid[i][j];
             cell.addEventListener('click', function () {
                 // If a cell is already selected, swap the colors
+                if ((i === 0 || i === grid.length - 1) && (j === 0 || j === grid[i].length - 1)) {
+                    return;
+                }
                 if (selectedCell) {
                     let tempColor = selectedCell.style.backgroundColor;
                     selectedCell.style.backgroundColor = cell.style.backgroundColor;
@@ -152,9 +180,9 @@ function displayGrid(grid) {
                     // changes
                     selectedCell.style.boxShadow = '';
                     selectedCell = null;
-                    if (checkWin(grid)) {
-                        alert('You win!');
-                    }
+                    // if (checkWin(grid)) {
+                    //     alert('You win!');
+                    // }
                 } else {
                     // Highlight the selected cell
                     // cell.classList.add('selected');
@@ -173,6 +201,33 @@ function displayGrid(grid) {
 
     gridElement.appendChild(table);
 }
+
+//win animation
+window.onload = function() {
+    document.getElementById('win-button').addEventListener('click', function() {
+        let button = document.getElementById('win-button');
+        let message = document.getElementById('win-message');
+
+        // Change the text of the button
+        button.textContent = 'You won!';
+
+        // Display a message
+        message.textContent = 'Congratulations, you won the game!';
+        message.style.fontSize = '2em';
+        message.style.color = 'green';
+
+        // Make the message fade in and out
+        let opacity = 0;
+        let direction = 1;
+        setInterval(function() {
+            opacity += direction * 0.05;
+            if (opacity <= 0 || opacity >= 1) {
+                direction *= -1;
+            }
+            message.style.opacity = opacity;
+        }, 50);
+    });
+};
 
 // Add some CSS to highlight the selected cell
 let style = document.createElement('style');
