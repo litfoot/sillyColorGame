@@ -5,15 +5,36 @@
     <link rel="stylesheet" type="text/css" href="css/game2.css">
 </head>
 <body>
-    <h1>Color Sort</h1>
-    <p>Sort the colors to create a gradient</p>
-    <div id="difficulty-setting">
-        <!-- Add options for setting the difficulty here -->
+    <div class="top-bar">
+        <button class="back-button" onclick="window.location.href='index.html'">Back</button>
+        <h1>Color Sort</h1>
+        <div id="difficulty-setting">
+            <label for="difficulty">Difficulty:</label>
+            <select id="difficulty" onchange="initializeGame()">
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+                <option value="6">6</option>
+                <option value="7"selected>7</option>
+                <option value="8">8</option>
+                <option value="9">9</option>
+                <option value="10">10</option>
+                <option value="11">11</option>
+                <option value="12">12</option>
+                <option value="13">13</option>
+                <option value="14">14</option>
+                <option value="15">15</option>
+                <option value="16">16</option>
+            </select>
+        </div>
     </div>
+    <p>Sort the colors to create a gradient</p>
+    <p>the corner squares are already in the correct spot</p>
+    
     <div id="game-grid">
         <!-- The game grid will be generated here -->
     </div>
-
+    <p>I highkey have no idea how to calculate a win so its up to you if you win or not</p>
     <script src="js/game2.js"></script>
 </body>
 </html>
