@@ -8,6 +8,13 @@
             display: block;
             margin: auto;
         }
+
+        button {
+            width: 80px;
+            height: 80px;
+            font-size: 20px;
+            margin: 10px;
+        }
     </style>
 </head>
 <body>
@@ -72,6 +79,15 @@
         <button id="startGameButton">Start Game</button>
     </div>
     <canvas id="gameCanvas" width="800" height="800"></canvas>
+    <div style="text-align: center;">
+        <p>Use the arrow keys to control the snake.</p>
+        <p> use these buttons if your on mobile</p>
+        <p>Press the Start Game button to begin.</p>
+        <button id="moveUp">Up</button>
+        <button id="moveLeft">Left</button>
+        <button id="moveRight">Right</button>
+        <button id="moveDown">Down</button>
+    </div>
     <script>
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
@@ -120,7 +136,10 @@
         }
 
         document.addEventListener('keydown', direction);
-
+        document.getElementById('moveUp').addEventListener('click', function() { if (d != 'DOWN') d = 'UP'; });
+        document.getElementById('moveDown').addEventListener('click', function() { if (d != 'UP') d = 'DOWN'; });
+        document.getElementById('moveLeft').addEventListener('click', function() { if (d != 'RIGHT') d = 'LEFT'; });
+        document.getElementById('moveRight').addEventListener('click', function() { if (d != 'LEFT') d = 'RIGHT'; });
         function direction(event) {
             let key = event.keyCode;
             if (key == 37 && d != 'RIGHT') {
