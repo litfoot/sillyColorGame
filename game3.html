@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Snake Game</title>
+    <style>
+        canvas {
+            background-color: #f0f0f0;
+            display: block;
+            margin: auto;
+        }
+    </style>
+</head>
+<body>
+    <div style="text-align: center;">
+        <h1 id="Title">Snake</h1>
+        <h2 id="score">Score: 0</h2>
+        <label for="snakeImageSelector">Who is the snake?</label>
+        <select id="snakeImageSelector">
+            <option value="anna.png">anna</option>
+            <option value="ashleyD.png">ashley</option>
+            <option value="austin.png">austin</option>
+            <option value="carolinee.png">caroline</option>
+            <option value="cascade.png">cascade</option>
+            <option value="chloe.png">chloe</option>
+            <option value="david.png">david</option>
+            <option value="ellisa.png">ellisa</option>
+            <option value="frida.png">frida</option>
+            <option value="georgia.png">georgia</option>
+            <option value="hailey.png">hailey</option>
+            <option value="jacob.png">jacob</option>
+            <option value="justin.png">justin</option>
+            <option value="kade.png">kade</option>
+            <option value="kathy.png">kathy</option>
+            <option value="luis.png">luis</option>
+            <option value="mikayla.png">mikayla</option>
+            <option value="oliver.png">oliver</option>
+            <option value="pierce.png">pierce</option>
+            <option value="rachel.png">rachel</option>
+            <option value="sam.png">sam</option>
+            <option value="sarah.png">sarah</option>
+            <option value="zak.png">zak</option>
+            <option value="zoe.png">zoe</option>
+        </select>
+        <label for="foodImageSelector">Who is the food?</label>
+        <select id="foodImageSelector">
+            <option value="anna.png">anna</option>
+            <option value="ashleyD.png">ashley</option>
+            <option value="austin.png">austin</option>
+            <option value="carolinee.png">caroline</option>
+            <option value="cascade.png">cascade</option>
+            <option value="chloe.png">chloe</option>
+            <option value="david.png">david</option>
+            <option value="ellisa.png">ellisa</option>
+            <option value="frida.png">frida</option>
+            <option value="georgia.png">georgia</option>
+            <option value="hailey.png">hailey</option>
+            <option value="jacob.png">jacob</option>
+            <option value="justin.png">justin</option>
+            <option value="kade.png">kade</option>
+            <option value="kathy.png">kathy</option>
+            <option value="luis.png">luis</option>
+            <option value="mikayla.png">mikayla</option>
+            <option value="oliver.png">oliver</option>
+            <option value="pierce.png">pierce</option>
+            <option value="rachel.png">rachel</option>
+            <option value="sam.png">sam</option>
+            <option value="sarah.png">sarah</option>
+            <option value="zak.png">zak</option>
+            <option value="zoe.png">zoe</option>
+        </select>
+        <button id="resetButton">Reset Game</button>
+        <button id="startGameButton">Start Game</button>
+    </div>
+    <canvas id="gameCanvas" width="800" height="800"></canvas>
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const scale = 40;
+        const rows = canvas.height / scale;
+        const columns = canvas.width / scale;
+        let snake = [];
+        snake[0] = { x: 10 * scale, y: 10 * scale };
+        let food = {
+            x: Math.floor(Math.random() * rows) * scale,
+            y: Math.floor(Math.random() * columns) * scale
+        };
+        let d;
+        let game;
+        let score = 0;
+
+        // Load images based on selection
+        const snakeImageSelector = document.getElementById('snakeImageSelector');
+        const foodImageSelector = document.getElementById('foodImageSelector');
+        let snakeImage = new Image();
+        let foodImage = new Image();
+
+        function loadImagesAndStartGame() {
+            snakeImage.src = snakeImageSelector.value;
+            foodImage.src = foodImageSelector.value;
+            snakeImage.onload = () => {
+                if (foodImage.complete) {
+                    startGame();
+                }
+            };
+            foodImage.onload = () => {
+                if (snakeImage.complete) {
+                    startGame();
+                }
+            };
+        }
+
+        // Add an event listener to the Start Game button
+        document.getElementById('startGameButton').addEventListener('click', function() {
+            loadImagesAndStartGame();
+        });
+
+        function startGame() {
+            clearInterval(game);
+            game = setInterval(draw, 100);
+        }
+
+        document.addEventListener('keydown', direction);
+
+        function direction(event) {
+            let key = event.keyCode;
+            if (key == 37 && d != 'RIGHT') {
+                d = 'LEFT';
+            } else if (key == 38 && d != 'DOWN') {
+                d = 'UP';
+            } else if (key == 39 && d != 'LEFT') {
+                d = 'RIGHT';
+            } else if (key == 40 && d != 'UP') {
+                d = 'DOWN';
+            }
+
+            if (!game) {
+                game = setInterval(draw, 100);
+            }
+        }
+
+        function collision(head, array) {
+            for (let i = 0; i < array.length; i++) {
+                if (head.x == array[i].x && head.y == array[i].y) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            for (let i = 0; i < snake.length; i++) {
+                ctx.drawImage(snakeImage, snake[i].x, snake[i].y, scale, scale);
+            }
+            ctx.drawImage(foodImage, food.x, food.y, scale, scale);
+
+            let snakeX = snake[0].x;
+            let snakeY = snake[0].y;
+
+            if (d == 'LEFT') snakeX -= scale;
+            if (d == 'UP') snakeY -= scale;
+            if (d == 'RIGHT') snakeX += scale;
+            if (d == 'DOWN') snakeY += scale;
+
+            if (snakeX == food.x && snakeY == food.y) {
+                food = {
+                    x: Math.floor(Math.random() * rows) * scale,
+                    y: Math.floor(Math.random() * columns) * scale
+                };
+                score++;
+                document.getElementById('score').innerText = 'Score: ' + score;
+            } else {
+                snake.pop();
+            }
+
+            let newHead = {
+                x: snakeX,
+                y: snakeY
+            };
+
+            if (snakeX < 0 || snakeY < 0 || snakeX >= canvas.width || snakeY >= canvas.height || collision(newHead, snake)) {
+                clearInterval(game);
+                alert('Game Over. Your final score is: ' + score);
+            }
+
+            snake.unshift(newHead);
+        }
+
+        document.getElementById('resetButton').addEventListener('click', resetGame);
+
+        function resetGame() {
+            clearInterval(game);
+            snake = [{ x: 10 * scale, y: 10 * scale }];
+            food = {
+                x: Math.floor(Math.random() * rows) * scale,
+                y: Math.floor(Math.random() * columns) * scale
+            };
+            score = 0;
+            document.getElementById('score').innerText = 'Score: ' + score;
+            d = undefined;
+            game = setInterval(draw, 100);
+        }
+    </script>
+</body>
+</html>
