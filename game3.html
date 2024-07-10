@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <title>Snake Game</title>
     <style>
@@ -17,17 +18,20 @@
         }
     </style>
 </head>
+
 <body>
     <div style="text-align: center;">
         <h1 id="Title">Snake</h1>
         <h2 id="score">Score: 0</h2>
+        <label for="speedSlider">Speed:</label>
+        <input type="range" id="speedSlider" min="50" max="250" value="100" step="10">
         <label for="snakeImageSelector">Who is the snake?</label>
         <select id="snakeImageSelector">
             <option value="anna.png">anna</option>
             <option value="ashleyD.png">ashley</option>
             <option value="austin.png">austin</option>
             <option value="carolinee.png">caroline</option>
-            <option value="cascade.png">cascade</option>
+            <option value="cascade.png" selected>cascade</option>
             <option value="chloe.png">chloe</option>
             <option value="david.png">david</option>
             <option value="ellisa.png">ellisa</option>
@@ -73,16 +77,16 @@
             <option value="sam.png">sam</option>
             <option value="sarah.png">sarah</option>
             <option value="zak.png">zak</option>
-            <option value="zoe.png">zoe</option>
+            <option value="zoe.png" selected>zoe</option>
         </select>
         <button id="resetButton">Reset Game</button>
         <button id="startGameButton">Start Game</button>
     </div>
     <canvas id="gameCanvas" width="800" height="800"></canvas>
     <div style="text-align: center;">
-        <p>Use the arrow keys to control the snake.</p>
+
         <p> use these buttons if your on mobile</p>
-        <p>Press the Start Game button to begin.</p>
+
         <button id="moveUp">Up</button>
         <button id="moveLeft">Left</button>
         <button id="moveRight">Right</button>
@@ -126,20 +130,21 @@
         }
 
         // Add an event listener to the Start Game button
-        document.getElementById('startGameButton').addEventListener('click', function() {
+        document.getElementById('startGameButton').addEventListener('click', function () {
             loadImagesAndStartGame();
         });
 
         function startGame() {
             clearInterval(game);
-            game = setInterval(draw, 100);
+            let speed = document.getElementById('speedSlider').value;
+            game = setInterval(draw, 301 - speed); // Adjust speed based on slider
         }
 
         document.addEventListener('keydown', direction);
-        document.getElementById('moveUp').addEventListener('click', function() { if (d != 'DOWN') d = 'UP'; });
-        document.getElementById('moveDown').addEventListener('click', function() { if (d != 'UP') d = 'DOWN'; });
-        document.getElementById('moveLeft').addEventListener('click', function() { if (d != 'RIGHT') d = 'LEFT'; });
-        document.getElementById('moveRight').addEventListener('click', function() { if (d != 'LEFT') d = 'RIGHT'; });
+        document.getElementById('moveUp').addEventListener('click', function () { if (d != 'DOWN') d = 'UP'; });
+        document.getElementById('moveDown').addEventListener('click', function () { if (d != 'UP') d = 'DOWN'; });
+        document.getElementById('moveLeft').addEventListener('click', function () { if (d != 'RIGHT') d = 'LEFT'; });
+        document.getElementById('moveRight').addEventListener('click', function () { if (d != 'LEFT') d = 'RIGHT'; });
         function direction(event) {
             let key = event.keyCode;
             if (key == 37 && d != 'RIGHT') {
@@ -217,8 +222,10 @@
             score = 0;
             document.getElementById('score').innerText = 'Score: ' + score;
             d = undefined;
-            game = setInterval(draw, 100);
+            let speed = document.getElementById('speedSlider').value;
+            game = setInterval(draw, 301 - speed); // Adjust speed based on slider
         }
     </script>
 </body>
+
 </html>
