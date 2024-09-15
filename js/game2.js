@@ -89,24 +89,24 @@ function initializeGrid(gridSize, color1Input, color4Input) {
     }
 
     // Shuffle the grid
-    // for (let i = 0; i < gridSize; i++) {
-    //     for (let j = 0; j < gridSize; j++) {
-    //         // Skip if the current piece is a corner piece
-    //         if ((i == 0 && j == 0) || (i == gridSize - 1 && j == gridSize - 1) || (i == 0 && j == gridSize - 1) || (i == gridSize - 1 && j == 0)) {
-    //             continue;
-    //         }
+    for (let i = 0; i < gridSize; i++) {
+        for (let j = 0; j < gridSize; j++) {
+            // Skip if the current piece is a corner piece
+            if ((i == 0 && j == 0) || (i == gridSize - 1 && j == gridSize - 1) || (i == 0 && j == gridSize - 1) || (i == gridSize - 1 && j == 0)) {
+                continue;
+            }
 
-    //         let i2, j2;
-    //         do {
-    //             i2 = Math.floor(Math.random() * gridSize);
-    //             j2 = Math.floor(Math.random() * gridSize);
-    //         } while ((i2 == 0 && j2 == 0) || (i2 == gridSize - 1 && j2 == gridSize - 1) || (i2 == 0 && j2 == gridSize - 1) || (i2 == gridSize - 1 && j2 == 0)); // Repeat until a non-corner piece is selected
+            let i2, j2;
+            do {
+                i2 = Math.floor(Math.random() * gridSize);
+                j2 = Math.floor(Math.random() * gridSize);
+            } while ((i2 == 0 && j2 == 0) || (i2 == gridSize - 1 && j2 == gridSize - 1) || (i2 == 0 && j2 == gridSize - 1) || (i2 == gridSize - 1 && j2 == 0)); // Repeat until a non-corner piece is selected
 
-    //         let temp = grid[i][j];
-    //         grid[i][j] = grid[i2][j2];
-    //         grid[i2][j2] = temp;
-    //     }
-    // }
+            let temp = grid[i][j];
+            grid[i][j] = grid[i2][j2];
+            grid[i2][j2] = temp;
+        }
+    }
 
     return grid;
 }
