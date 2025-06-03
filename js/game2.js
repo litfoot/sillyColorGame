@@ -6,30 +6,6 @@ function hexToRgb(hex) {
     return `rgb(${r}, ${g}, ${b})`;
 }
 
-function initializeGame() {
-    let difficulty = document.getElementById('difficulty').value;
-    let color1Input = document.getElementById('color1').value;
-    let color4Input = document.getElementById('color4').value;
-
-    // If the color picker's value is #000000, generate a random color instead
-    if (color1Input === '#000000') {
-        color1Input = generateColor();
-    } else {
-        color1Input = hexToRgb(color1Input);
-    }
-    if (color4Input === '#000000') {
-        color4Input = generateColor();
-    } else {
-        color4Input = hexToRgb(color4Input);
-    }
-
-    console.log(`color1Input: ${color1Input}, color4Input: ${color4Input}`);
-    let grid = initializeGrid(difficulty, color1Input, color4Input);
-    displayGrid(grid);
-}
-// Initialize the game when the page loads
-window.onload = initializeGame;
-
 // Function to generate a random color
 function generateColor() {
     let r = Math.floor(Math.random() * 206) + 50; // 50 to 255
@@ -38,7 +14,18 @@ function generateColor() {
     return `rgb(${r}, ${g}, ${b})`;
 }
 
-// Function to generate a color gradient between two colors
+// Function to interpolate between two colors
+function interpolateColor(color1, color2, factor) {
+    let colorComponents1 = color1.match(/\d+/g).map(Number);
+    let colorComponents2 = color2.match(/\d+/g).map(Number);
+    let r = colorComponents1[0] + factor * (colorComponents2[0] - colorComponents1[0]);
+    let g = colorComponents1[1] + factor * (colorComponents2[1] - colorComponents1[1]);
+    let b = colorComponents1[2] + factor * (colorComponents2[2] - colorComponents1[2]);
+    return `rgb(${Math.round(r)}, ${Math.round(g)}, ${Math.round(b)})`;
+}
+
+// (Optional) Function to generate a color gradient between two colors
+// Not used in win-check logic, but retained in case you need it elsewhere.
 function generateGradient(color1, color2, steps) {
     let gradient = [];
     let color1Components = color1.match(/\d+/g).map(Number);
@@ -54,45 +41,72 @@ function generateGradient(color1, color2, steps) {
     return gradient;
 }
 
+// Global variables to hold the solved pattern (targetGrid) and the current shuffled pattern (currentGrid)
+let targetGrid = [];
+let currentGrid = [];
 
-// Function to interpolate between two colors
-function interpolateColor(color1, color2, factor) {
-    let colorComponents1 = color1.match(/\d+/g).map(Number);
-    let colorComponents2 = color2.match(/\d+/g).map(Number);
-    let r = colorComponents1[0] + factor * (colorComponents2[0] - colorComponents1[0]);
-    let g = colorComponents1[1] + factor * (colorComponents2[1] - colorComponents1[1]);
-    let b = colorComponents1[2] + factor * (colorComponents2[2] - colorComponents1[2]);
-    return `rgb(${Math.round(r)}, ${Math.round(g)}, ${Math.round(b)})`;
-}
-
-// Function to initialize the game grid
-function initializeGrid(gridSize, color1Input, color4Input) {
-    let color1 = color1Input;
-    // let color1 = color1Input || generateColor();
-    let color2 = 'rgb(255, 255, 255)'; // White
-    let color3 = 'rgb(0, 0, 0)'; // Black
-    let color4 = color4Input;
-    // let color4 = color4Input || generateColor();
-
+// Build a “pure” solved gradient, no shuffling.
+// Takes the same parameters as initializeGrid would, but does NOT shuffle.
+function buildSortedGrid(gridSize, color1, color4) {
     let grid = [];
     for (let i = 0; i < gridSize; i++) {
         let row = [];
         for (let j = 0; j < gridSize; j++) {
             let factor1 = i / (gridSize - 1);
             let factor2 = j / (gridSize - 1);
-            let colorTop = interpolateColor(color1, color2, factor2);
-            let colorBottom = interpolateColor(color3, color4, factor2);
-            let color = interpolateColor(colorTop, colorBottom, factor1);
-            row.push(color);
+
+            // Top edge goes from color1 → white
+            let colorTop = interpolateColor(color1, 'rgb(255,255,255)', factor2);
+            // Bottom edge goes from black → color4
+            let colorBottom = interpolateColor('rgb(0,0,0)', color4, factor2);
+            // Interpolate vertically between those two
+            let finalColor = interpolateColor(colorTop, colorBottom, factor1);
+
+            row.push(finalColor);
         }
         grid.push(row);
     }
+    return grid;
+}
 
-    // Shuffle the grid
+// Function to initialize the game: builds the target grid, shuffles a copy, and displays it.
+function initializeGame() {
+    let gridSizeInput = document.getElementById('difficulty').value;
+    let gridSize = parseInt(gridSizeInput, 10);
+
+    let color1Hex = document.getElementById('color1').value;
+    let color4Hex = document.getElementById('color4').value;
+
+    // Convert or generate color1
+    if (color1Hex === '#000000') {
+        color1Hex = generateColor();
+    } else {
+        color1Hex = hexToRgb(color1Hex);
+    }
+
+    // Convert or generate color4
+    if (color4Hex === '#000000') {
+        color4Hex = generateColor();
+    } else {
+        color4Hex = hexToRgb(color4Hex);
+    }
+
+    console.log(`color1Input: ${color1Hex}, color4Input: ${color4Hex}, gridSize: ${gridSize}`);
+
+    // 1) Build & store the perfect, unshuffled gradient
+    targetGrid = buildSortedGrid(gridSize, color1Hex, color4Hex);
+
+    // 2) Make a deep copy to shuffle for the player
+    currentGrid = targetGrid.map(row => row.slice());
+
+    // 3) Shuffle only non-corner cells in place
     for (let i = 0; i < gridSize; i++) {
         for (let j = 0; j < gridSize; j++) {
-            // Skip if the current piece is a corner piece
-            if ((i == 0 && j == 0) || (i == gridSize - 1 && j == gridSize - 1) || (i == 0 && j == gridSize - 1) || (i == gridSize - 1 && j == 0)) {
+            // Skip corners
+            if ((i === 0 && j === 0) ||
+                (i === 0 && j === gridSize - 1) ||
+                (i === gridSize - 1 && j === 0) ||
+                (i === gridSize - 1 && j === gridSize - 1)) {
                 continue;
             }
 
@@ -100,139 +114,137 @@ function initializeGrid(gridSize, color1Input, color4Input) {
             do {
                 i2 = Math.floor(Math.random() * gridSize);
                 j2 = Math.floor(Math.random() * gridSize);
-            } while ((i2 == 0 && j2 == 0) || (i2 == gridSize - 1 && j2 == gridSize - 1) || (i2 == 0 && j2 == gridSize - 1) || (i2 == gridSize - 1 && j2 == 0)); // Repeat until a non-corner piece is selected
+            } while (
+                (i2 === 0 && j2 === 0) ||
+                (i2 === 0 && j2 === gridSize - 1) ||
+                (i2 === gridSize - 1 && j2 === 0) ||
+                (i2 === gridSize - 1 && j2 === gridSize - 1)
+            );
 
-            let temp = grid[i][j];
-            grid[i][j] = grid[i2][j2];
-            grid[i2][j2] = temp;
+            // Swap currentGrid[i][j] <-> currentGrid[i2][j2]
+            let tmp = currentGrid[i][j];
+            currentGrid[i][j] = currentGrid[i2][j2];
+            currentGrid[i2][j2] = tmp;
         }
     }
 
-    return grid;
+    // 4) Render the shuffled grid
+    displayGrid(currentGrid);
 }
 
-// Initialize the game grid
-let gridSize = 10; // Change this to change the difficulty
-let grid = initializeGrid(gridSize);
-
-// Function to convert RGB color to grayscale
-function rgbToGrayscale(rgb) {
-    let components = rgb.match(/\d+/g).map(Number);
-    return 0.299 * components[0] + 0.587 * components[1] + 0.114 * components[2];
-}
-
-// Function to check if the game is won
+// Function to check if the game is won: compares currentGrid to targetGrid element-wise
 function checkWin(grid) {
-    let grayscaleGrid = grid.map(row => row.map(rgbToGrayscale));
-    for (let i = 0; i < grayscaleGrid.length - 1; i++) {
-        for (let j = 0; j < grayscaleGrid[i].length - 1; j++) {
-            if (grayscaleGrid[i][j] > grayscaleGrid[i][j + 1] || grayscaleGrid[i][j] > grayscaleGrid[i + 1][j]) {
+    let n = grid.length;
+    for (let i = 0; i < n; i++) {
+        for (let j = 0; j < n; j++) {
+            if (grid[i][j] !== targetGrid[i][j]) {
                 return false;
             }
-        }
-        // Check if the last cell in the current row is greater than the first cell in the next row
-        if (grayscaleGrid[i][grayscaleGrid[i].length - 1] > grayscaleGrid[i + 1][0]) {
-            return false;
-        }
-    }
-    // Check if the grayscale values in the last row are sorted in ascending order
-    for (let j = 0; j < grayscaleGrid[grayscaleGrid.length - 1].length - 1; j++) {
-        if (grayscaleGrid[grayscaleGrid.length - 1][j] > grayscaleGrid[grayscaleGrid.length - 1][j + 1]) {
-            return false;
         }
     }
     return true;
 }
 
-
-
-// Function to display the grid on the webpage
+// Function to display the grid on the webpage and set up click/swapping behavior
 function displayGrid(grid) {
     let gridElement = document.getElementById('game-grid');
-    gridElement.innerHTML = ''; // Clear the existing grid
+    gridElement.innerHTML = ''; // Clear any existing cells
 
     let selectedCell = null;
 
     let table = document.createElement('table');
+    table.style.borderCollapse = 'collapse';
     for (let i = 0; i < grid.length; i++) {
-        let row = document.createElement('tr');
+        let tr = document.createElement('tr');
         for (let j = 0; j < grid[i].length; j++) {
-            let cell = document.createElement('td');
-            cell.style.backgroundColor = grid[i][j];
-            cell.addEventListener('click', function () {
-                // If a cell is already selected, swap the colors
-                if ((i === 0 || i === grid.length - 1) && (j === 0 || j === grid[i].length - 1)) {
+            let td = document.createElement('td');
+            td.style.backgroundColor = grid[i][j];
+            td.style.width = '30px';
+            td.style.height = '30px';
+            td.style.cursor = 'pointer';
+            td.dataset.i = i;
+            td.dataset.j = j;
+
+            td.addEventListener('click', function () {
+                let row = parseInt(this.dataset.i, 10);
+                let col = parseInt(this.dataset.j, 10);
+
+                // If clicked cell is a corner, ignore
+                if ((row === 0 && col === 0) ||
+                    (row === 0 && col === grid.length - 1) ||
+                    (row === grid.length - 1 && col === 0) ||
+                    (row === grid.length - 1 && col === grid.length - 1)) {
                     return;
                 }
+
                 if (selectedCell) {
-                    let tempColor = selectedCell.style.backgroundColor;
-                    selectedCell.style.backgroundColor = cell.style.backgroundColor;
-                    cell.style.backgroundColor = tempColor;
+                    // Swap the two selected cells
+                    let prevRow = parseInt(selectedCell.dataset.i, 10);
+                    let prevCol = parseInt(selectedCell.dataset.j, 10);
 
-                    // Update the colors in the grid
-                    let tempColorGrid = grid[selectedCell.dataset.i][selectedCell.dataset.j];
-                    grid[selectedCell.dataset.i][selectedCell.dataset.j] = grid[i][j];
-                    grid[i][j] = tempColorGrid;
+                    // Swap colors in DOM
+                    let prevColor = selectedCell.style.backgroundColor;
+                    selectedCell.style.backgroundColor = this.style.backgroundColor;
+                    this.style.backgroundColor = prevColor;
 
-                    // Remove the highlight from the previously selected cell
-                    // selectedCell.classList.remove('selected');
-                    // selectedCell = null;
-                    // changes
+                    // Update currentGrid array
+                    let tempColorGrid = currentGrid[prevRow][prevCol];
+                    currentGrid[prevRow][prevCol] = currentGrid[row][col];
+                    currentGrid[row][col] = tempColorGrid;
+
+                    // Remove highlight from previous cell
                     selectedCell.style.boxShadow = '';
                     selectedCell = null;
-                    // if (checkWin(grid)) {
-                    //     alert('You win!');
-                    // }
+
+                    // Check for win after swap
+                    if (checkWin(currentGrid)) {
+                        alert('You win!');
+                    }
                 } else {
-                    // Highlight the selected cell
-                    // cell.classList.add('selected');
-                    // selectedCell = cell;
-                    //changed
-                    cell.style.boxShadow = '0 0 10px 3px #FFD700';
-                    selectedCell = cell;
+                    // Highlight this cell as selected
+                    this.style.boxShadow = '0 0 10px 3px #FFD700';
+                    selectedCell = this;
                 }
             });
-            cell.dataset.i = i;
-            cell.dataset.j = j;
-            row.appendChild(cell);
+
+            tr.appendChild(td);
         }
-        table.appendChild(row);
+        table.appendChild(tr);
     }
 
     gridElement.appendChild(table);
 }
 
-//win animation
-window.onload = function() {
-    document.getElementById('win-button').addEventListener('click', function() {
-        let button = document.getElementById('win-button');
-        let message = document.getElementById('win-message');
+// Set up window.onload to initialize the game and hook the win-button
+window.onload = function () {
+    // Initialize the game grid and display it
+    initializeGame();
 
-        // Change the text of the button
-        button.textContent = 'You won!';
+    // Hook up the win animation button (if it exists)
+    let winButton = document.getElementById('win-button');
+    let winMessage = document.getElementById('win-message');
+    if (winButton && winMessage) {
+        winButton.addEventListener('click', function () {
+            winButton.textContent = 'You won!';
+            winMessage.textContent = 'Congratulations, you won the game!';
+            winMessage.style.fontSize = '2em';
+            winMessage.style.color = 'green';
 
-        // Display a message
-        message.textContent = 'Congratulations, you won the game!';
-        message.style.fontSize = '2em';
-        message.style.color = 'green';
-
-        // Make the message fade in and out
-        let opacity = 0;
-        let direction = 1;
-        setInterval(function() {
-            opacity += direction * 0.05;
-            if (opacity <= 0 || opacity >= 1) {
-                direction *= -1;
-            }
-            message.style.opacity = opacity;
-        }, 50);
-    });
+            let opacity = 0;
+            let direction = 1;
+            setInterval(function () {
+                opacity += direction * 0.05;
+                if (opacity <= 0 || opacity >= 1) {
+                    direction *= -1;
+                }
+                winMessage.style.opacity = opacity;
+            }, 50);
+        });
+    }
 };
 
-// Add some CSS to highlight the selected cell
+// (Optional) Add CSS rules if you want custom styling for selected cells, etc.
+// Currently left empty, but you can add rules as needed.
 let style = document.createElement('style');
 style.innerHTML = ``;
 document.head.appendChild(style);
-
-// Display the grid on the webpage
-displayGrid(grid);
